@@ -34,16 +34,6 @@ impl Grid {
         })
     }
 
-    pub fn new_from_lines(lines: &[&str]) -> Result<Self, Box<dyn Error>> {
-        // Parse lines to Vec<Vec<char>>
-        let grid = lines
-            .iter()
-            .map(|line| line.chars().collect::<Vec<_>>())
-            .collect::<Vec<_>>();
-
-        Self::new(grid)
-    }
-
     pub fn new_with<F>(rows: usize, cols: usize, func: F) -> Result<Self, Box<dyn Error>>
     where
         F: Fn(Point) -> char,
@@ -234,29 +224,12 @@ impl IndexMut<Point> for Grid {
 
 #[cfg(test)]
 mod tests {
+    use crate::parsers::parser::Parser;
+
     use super::*;
 
     fn build_grid() -> Grid {
         Grid::new(vec![vec!['a', 'b', 'c'], vec!['d', 'e', 'f']]).unwrap()
-    }
-
-    #[test]
-    fn test_new_from_lines() {
-        let lines = ["..#.S#", "......", "E#...#"];
-
-        let result = Grid::new_from_lines(&lines);
-        assert!(result.is_ok());
-
-        let grid = result.unwrap();
-        assert_eq!(grid.rows, 3);
-        assert_eq!(grid.cols, 6);
-        assert_eq!(grid[Point { x: 0, y: 0 }], '.');
-        assert_eq!(grid[Point { x: 4, y: 0 }], 'S');
-        assert_eq!(grid[Point { x: 5, y: 0 }], '#');
-        assert_eq!(grid[Point { x: 1, y: 1 }], '.');
-        assert_eq!(grid[Point { x: 0, y: 2 }], 'E');
-        assert_eq!(grid[Point { x: 1, y: 2 }], '#');
-        assert_eq!(grid[Point { x: 5, y: 2 }], '#');
     }
 
     #[test]
@@ -359,8 +332,12 @@ mod tests {
 
     #[test]
     fn test_get_value() {
-        let lines = ["..#.S#", "......", "E#...#"];
-        let grid = Grid::new_from_lines(&lines).unwrap();
+        let lines = vec![
+            "..#.S#".to_string(),
+            "......".to_string(),
+            "E#...#".to_string(),
+        ];
+        let grid = Parser::parse_lines_to_grid(lines).unwrap();
 
         assert_eq!(grid.get_value('S'), vec![Point { x: 4, y: 0 }]);
         assert_eq!(grid.get_value('E'), vec![Point { x: 0, y: 2 }]);

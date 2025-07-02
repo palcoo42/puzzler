@@ -1,11 +1,11 @@
-use std::error::Error;
+use std::{error::Error, path::PathBuf};
 
 // Puzzle which can be solved by Solver
 pub trait Puzzle {
     fn name(&self) -> &str;
 
     // By default puzzle is not using an input file
-    fn get_input_file_path(&self) -> Option<String> {
+    fn get_input_file_path(&self) -> Option<PathBuf> {
         None
     }
 

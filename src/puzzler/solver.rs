@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::{error::Error, fs::File, io::BufRead, io::BufReader};
 
 use crate::puzzler::puzzle::Puzzle;
@@ -24,8 +25,8 @@ impl Solver {
         Self { parts, puzzle }
     }
 
-    fn read_input_file(input_file: &str) -> Result<Vec<String>, Box<dyn Error>> {
-        let file = File::open(input_file)?;
+    fn read_input_file(input_file_path: &PathBuf) -> Result<Vec<String>, Box<dyn Error>> {
+        let file = File::open(input_file_path)?;
         let reader = BufReader::new(file);
 
         Ok(reader.lines().collect::<Result<_, _>>()?)
