@@ -15,7 +15,10 @@ impl Parser {
     pub fn parse_lines_to_integer(lines: Vec<String>) -> Result<Vec<i64>, Box<dyn Error>> {
         lines
             .into_iter()
-            .map(|line| line.parse::<i64>().map_err(|e| e.into()))
+            .map(|line| {
+                line.parse::<i64>()
+                    .map_err(|err| format!("Failed to parse '{}' to i64 [{}]", line, err).into())
+            })
             .collect()
     }
 
@@ -29,8 +32,12 @@ impl Parser {
             .map(|line| {
                 line.split(pattern)
                     .map(str::trim)
-                    .map(|s| s.parse::<i64>().map_err(|e| e.into()))
-                    .collect::<Result<Vec<i64>, Box<dyn std::error::Error>>>()
+                    .map(|s| {
+                        s.parse::<i64>().map_err(|err| {
+                            format!("Failed to parse '{}' to i64 [{}]", s, err).into()
+                        })
+                    })
+                    .collect::<Result<Vec<i64>, Box<dyn Error>>>()
             })
             .collect()
     }
@@ -72,8 +79,8 @@ impl Parser {
         // Go through all lines
         for line in &lines {
             // Apply regex pattern, in case of no match report an error
-            let captures = re.captures(line).ok_or_else(|| {
-                Box::<dyn Error>::from(format!("Failed to parse line '{}'", line))
+            let captures = re.captures(line).ok_or_else(|| -> Box<dyn Error> {
+                format!("Failed to parse line '{}'", line).into()
             })?;
 
             let groups = captures
