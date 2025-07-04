@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-regex ={ version = "1.*" }
+regex = { version = "1.*" }
 
 [[bin]]
-name = "demo"
-path = "examples/demo.rs"
+name = "template"
+path = "template/src/main.rs"
