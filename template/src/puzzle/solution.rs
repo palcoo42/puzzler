@@ -1,3 +1,4 @@
+use puzzler::env::project;
 use puzzler::puzzler::puzzle::Puzzle;
 
 pub struct Solution {}
@@ -5,6 +6,19 @@ pub struct Solution {}
 impl Puzzle for Solution {
     fn name(&self) -> &str {
         "template"
+    }
+
+    fn get_input_file_path(&self) -> Option<std::path::PathBuf> {
+        Some(
+            project::get_project_file("../input/day_XX.txt")
+                .unwrap_or_else(|err| panic!("Failed to fetch file ../input/day_XX.txt [{}]", err)),
+        )
+    }
+}
+
+impl Solution {
+    pub fn new() -> Self {
+        Self {}
     }
 }
 
@@ -15,7 +29,13 @@ mod tests {
     use crate::puzzle::solution::Solution;
 
     fn get_puzzle() -> Solution {
-        Solution {}
+        let mut solution = Solution::new();
+
+        solution
+            .parse_input_file()
+            .unwrap_or_else(|err| panic!("Failed to parse input file [{}]", err));
+
+        solution
     }
 
     #[test]

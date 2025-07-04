@@ -25,8 +25,14 @@ impl Solver {
         Self { parts, puzzle }
     }
 
-    fn read_input_file(input_file_path: &PathBuf) -> Result<Vec<String>, Box<dyn Error>> {
-        let file = File::open(input_file_path)?;
+    pub fn read_input_file(input_file_path: &PathBuf) -> Result<Vec<String>, Box<dyn Error>> {
+        let file = File::open(input_file_path).map_err(|e| {
+            format!(
+                "Failed to open file '{}' [{}]",
+                input_file_path.display(),
+                e
+            )
+        })?;
         let reader = BufReader::new(file);
 
         Ok(reader.lines().collect::<Result<_, _>>()?)
@@ -38,18 +44,7 @@ impl Solver {
         println!("{}", self.puzzle.name());
         println!("{}", "=".repeat(self.puzzle.name().len()));
 
-        // Parse input file if available
-        if let Some(input_file_path) = self.puzzle.get_input_file_path() {
-            print!("Parsing input file ...");
-
-            // Read file content
-            let lines = Self::read_input_file(&input_file_path)?;
-
-            // Parse content
-            self.puzzle.parse_content(lines)?;
-
-            println!();
-        }
+        self.puzzle.parse_input_file()?;
 
         // Solve puzzle parts
         for part in 1..=self.parts {
