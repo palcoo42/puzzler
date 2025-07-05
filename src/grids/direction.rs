@@ -50,6 +50,20 @@ impl Direction {
     }
 }
 
+impl TryFrom<char> for Direction {
+    type Error = ();
+
+    fn try_from(value: char) -> Result<Self, Self::Error> {
+        match value {
+            '<' => Ok(Direction::West),
+            '^' => Ok(Direction::North),
+            '>' => Ok(Direction::East),
+            'v' => Ok(Direction::South),
+            _ => Err(()),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -76,5 +90,21 @@ mod tests {
         assert_eq!(Direction::East.backward(), Direction::West);
         assert_eq!(Direction::South.backward(), Direction::North);
         assert_eq!(Direction::West.backward(), Direction::East);
+    }
+
+    #[test]
+    fn test_try_from() {
+        assert_eq!(Direction::try_from('<'), Ok(Direction::West));
+        assert_eq!(Direction::try_from('^'), Ok(Direction::North));
+        assert_eq!(Direction::try_from('>'), Ok(Direction::East));
+        assert_eq!(Direction::try_from('v'), Ok(Direction::South));
+    }
+
+    #[test]
+    fn test_try_from_error() {
+        assert_eq!(Direction::try_from('a'), Err(()));
+        assert_eq!(Direction::try_from('/'), Err(()));
+        assert_eq!(Direction::try_from('x'), Err(()));
+        assert_eq!(Direction::try_from('l'), Err(()));
     }
 }
