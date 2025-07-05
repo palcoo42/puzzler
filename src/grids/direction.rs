@@ -64,6 +64,14 @@ impl TryFrom<char> for Direction {
     }
 }
 
+impl TryFrom<u8> for Direction {
+    type Error = ();
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        Direction::try_from(value as char)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -93,7 +101,7 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from() {
+    fn test_try_from_char() {
         assert_eq!(Direction::try_from('<'), Ok(Direction::West));
         assert_eq!(Direction::try_from('^'), Ok(Direction::North));
         assert_eq!(Direction::try_from('>'), Ok(Direction::East));
@@ -101,10 +109,26 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_error() {
+    fn test_try_from_char_error() {
         assert_eq!(Direction::try_from('a'), Err(()));
         assert_eq!(Direction::try_from('/'), Err(()));
         assert_eq!(Direction::try_from('x'), Err(()));
         assert_eq!(Direction::try_from('l'), Err(()));
+    }
+
+    #[test]
+    fn test_try_from_u8() {
+        assert_eq!(Direction::try_from(b'<'), Ok(Direction::West));
+        assert_eq!(Direction::try_from(b'^'), Ok(Direction::North));
+        assert_eq!(Direction::try_from(b'>'), Ok(Direction::East));
+        assert_eq!(Direction::try_from(b'v'), Ok(Direction::South));
+    }
+
+    #[test]
+    fn test_try_from_u8_error() {
+        assert_eq!(Direction::try_from(b'a'), Err(()));
+        assert_eq!(Direction::try_from(b'/'), Err(()));
+        assert_eq!(Direction::try_from(b'x'), Err(()));
+        assert_eq!(Direction::try_from(b'l'), Err(()));
     }
 }
