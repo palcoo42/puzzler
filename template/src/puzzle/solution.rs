@@ -10,8 +10,8 @@ impl Puzzle for Solution {
 
     fn get_input_file_path(&self) -> Option<std::path::PathBuf> {
         Some(
-            project::get_project_file("../input/day_XX.txt")
-                .unwrap_or_else(|err| panic!("Failed to fetch file ../input/day_XX.txt [{}]", err)),
+            project::get_project_file("input/day_XX.txt")
+                .unwrap_or_else(|err| panic!("Failed to fetch file input/day_XX.txt [{}]", err)),
         )
     }
 }
@@ -40,11 +40,11 @@ mod tests {
 
     #[test]
     fn test_solve_part1() {
-        assert_eq!(get_puzzle().solve_part1().unwrap(), "0");
+        assert_eq!(get_puzzle().solve_part1().unwrap(), "Not solved");
     }
 
     #[test]
     fn test_solve_part2() {
-        assert_eq!(get_puzzle().solve_part2().unwrap(), "0");
+        assert_eq!(get_puzzle().solve_part2().unwrap(), "Not solved");
     }
 }
