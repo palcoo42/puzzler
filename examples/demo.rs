@@ -7,7 +7,7 @@ use puzzler::{
 };
 
 struct DemoPuzzle {
-    numbers: Vec<i64>,
+    numbers: Vec<isize>,
 }
 
 impl DemoPuzzle {
@@ -34,7 +34,7 @@ impl Puzzle for DemoPuzzle {
     }
 
     fn solve_part1(&mut self) -> Result<String, Box<dyn Error>> {
-        Ok(self.numbers.iter().sum::<i64>().to_string())
+        Ok(self.numbers.iter().sum::<isize>().to_string())
     }
 }
 

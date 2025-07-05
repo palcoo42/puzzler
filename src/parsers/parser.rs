@@ -12,12 +12,12 @@ impl Parser {
     }
 
     // Parse every line to single integer
-    pub fn parse_lines_to_integer(lines: Vec<String>) -> Result<Vec<i64>, Box<dyn Error>> {
+    pub fn parse_lines_to_integer(lines: Vec<String>) -> Result<Vec<isize>, Box<dyn Error>> {
         lines
             .into_iter()
             .map(|line| {
-                line.parse::<i64>()
-                    .map_err(|err| format!("Failed to parse '{}' to i64 [{}]", line, err).into())
+                line.parse::<isize>()
+                    .map_err(|err| format!("Failed to parse '{}' to isize [{}]", line, err).into())
             })
             .collect()
     }
@@ -26,18 +26,18 @@ impl Parser {
     pub fn parse_lines_to_integers(
         lines: Vec<String>,
         pattern: &str,
-    ) -> Result<Vec<Vec<i64>>, Box<dyn Error>> {
+    ) -> Result<Vec<Vec<isize>>, Box<dyn Error>> {
         lines
             .into_iter()
             .map(|line| {
                 line.split(pattern)
                     .map(str::trim)
                     .map(|s| {
-                        s.parse::<i64>().map_err(|err| {
-                            format!("Failed to parse '{}' to i64 [{}]", s, err).into()
+                        s.parse::<isize>().map_err(|err| {
+                            format!("Failed to parse '{}' to isize [{}]", s, err).into()
                         })
                     })
-                    .collect::<Result<Vec<i64>, Box<dyn Error>>>()
+                    .collect::<Result<Vec<isize>, Box<dyn Error>>>()
             })
             .collect()
     }
@@ -149,8 +149,8 @@ mod tests {
 
         #[derive(PartialEq, Debug)]
         struct Button {
-            x: i64,
-            y: i64,
+            x: isize,
+            y: isize,
         }
 
         let regex = r#"^Button A: X\+(\d+), Y\+(\d+)"#;
@@ -165,8 +165,8 @@ mod tests {
             }
 
             Ok(Button {
-                x: params[0].parse::<i64>()?,
-                y: params[1].parse::<i64>()?,
+                x: params[0].parse::<isize>()?,
+                y: params[1].parse::<isize>()?,
             })
         });
 
@@ -191,7 +191,7 @@ mod tests {
 
         let regex = r#"^Button A: X\+(\d+), Y\+(\d+)"#;
 
-        let result: Result<Vec<i64>, Box<dyn Error>> =
+        let result: Result<Vec<isize>, Box<dyn Error>> =
             Parser::parse_lines_with_regex(lines, regex, |_| Err("Error".into()));
 
         assert!(result.is_err());
