@@ -23,7 +23,7 @@ impl Puzzle for DemoPuzzle {
 
     fn get_input_file_path(&self) -> Option<PathBuf> {
         let path = project::get_project_file("examples/input.txt")
-            .unwrap_or_else(|err| panic!("Failed to find project file [{}]", err));
+            .unwrap_or_else(|err| panic!("Failed to find project file [{err}]"));
 
         Some(path)
     }

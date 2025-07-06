@@ -72,7 +72,7 @@ impl Grid {
         // Avoid changing of the grid if there is invalid point
         for (point, _) in data {
             if !self.is_point_in_grid(point) {
-                return Err(format!("Point {:?} is not in the grid", point).into());
+                return Err(format!("Point {point:?} is not in the grid").into());
             }
         }
 
@@ -203,7 +203,7 @@ impl Grid {
                 })
                 .collect::<String>();
 
-            println!("{}", line);
+            println!("{line}");
         }
     }
 }
@@ -247,9 +247,7 @@ mod tests {
                 assert_eq!(
                     grid[Point { x: j, y: i }],
                     '.',
-                    "Failed at (x: {}, y: {})",
-                    j,
-                    i
+                    "Failed at (x: {j}, y: {i})",
                 );
             }
         }
@@ -293,11 +291,11 @@ mod tests {
         let grid = build_grid();
 
         let result = grid.neighbor_if(&Point::new(0, 0), &Direction::East, |_, _| true);
-        assert!(result.is_some(), "result: {:?}", result);
+        assert!(result.is_some(), "result: {result:?}");
         assert_eq!(result.unwrap(), (Point::new(1, 0), Direction::East));
 
         let result = grid.neighbor_if(&Point::new(0, 0), &Direction::West, |_, _| true);
-        assert!(result.is_none(), "result: {:?}", result);
+        assert!(result.is_none(), "result: {result:?}");
     }
 
     #[test]
@@ -305,10 +303,10 @@ mod tests {
         let grid = build_grid();
 
         let result = grid.neighbor_if(&Point::new(0, 0), &Direction::East, |_, _| false);
-        assert!(result.is_none(), "result: {:?}", result);
+        assert!(result.is_none(), "result: {result:?}");
 
         let result = grid.neighbor_if(&Point::new(0, 0), &Direction::West, |_, _| false);
-        assert!(result.is_none(), "result: {:?}", result);
+        assert!(result.is_none(), "result: {result:?}");
     }
 
     #[test]
@@ -316,18 +314,18 @@ mod tests {
         let grid = build_grid();
 
         let result = grid.neighbor(&Point::new(0, 0), &Direction::East);
-        assert!(result.is_some(), "result: {:?}", result);
+        assert!(result.is_some(), "result: {result:?}");
         assert_eq!(result.unwrap(), (Point::new(1, 0), Direction::East));
 
         let result = grid.neighbor(&Point::new(0, 0), &Direction::South);
-        assert!(result.is_some(), "result: {:?}", result);
+        assert!(result.is_some(), "result: {result:?}");
         assert_eq!(result.unwrap(), (Point::new(0, 1), Direction::South));
 
         let result = grid.neighbor(&Point::new(0, 0), &Direction::North);
-        assert!(result.is_none(), "result: {:?}", result);
+        assert!(result.is_none(), "result: {result:?}");
 
         let result = grid.neighbor(&Point::new(0, 0), &Direction::West);
-        assert!(result.is_none(), "result: {:?}", result);
+        assert!(result.is_none(), "result: {result:?}");
     }
 
     #[test]
@@ -365,7 +363,7 @@ mod tests {
 
         let result = grid.fill(&[(Point { x: 0, y: 0 }, 'S'), (Point { x: 2, y: 1 }, 'E')]);
 
-        assert!(result.is_ok(), "result: {:?}", result);
+        assert!(result.is_ok(), "result: {result:?}");
         assert_eq!(grid[Point { x: 0, y: 0 }], 'S');
         assert_eq!(grid[Point { x: 1, y: 0 }], '.');
         assert_eq!(grid[Point { x: 2, y: 0 }], '.');
@@ -391,7 +389,7 @@ mod tests {
             (Point { x: 42, y: 42 }, 'X'),
         ]);
 
-        assert!(result.is_err(), "result: {:?}", result);
+        assert!(result.is_err(), "result: {result:?}");
         assert_eq!(grid[Point { x: 0, y: 0 }], '.');
         assert_eq!(grid[Point { x: 1, y: 0 }], '.');
         assert_eq!(grid[Point { x: 2, y: 0 }], '.');

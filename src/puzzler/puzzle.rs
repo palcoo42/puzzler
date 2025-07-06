@@ -43,7 +43,7 @@ pub trait Puzzle {
             let reader = BufReader::new(file);
 
             let lines: Result<Vec<String>, std::io::Error> = reader.lines().collect();
-            let lines = lines.map_err(|e| format!("Failed to read lines from file [{}]", e))?;
+            let lines = lines.map_err(|e| format!("Failed to read lines from file [{e}]"))?;
 
             // Parse content
             self.parse_content(lines)?;

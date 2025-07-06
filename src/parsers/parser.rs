@@ -17,7 +17,7 @@ impl Parser {
             .into_iter()
             .map(|line| {
                 line.parse::<isize>()
-                    .map_err(|err| format!("Failed to parse '{}' to isize [{}]", line, err).into())
+                    .map_err(|err| format!("Failed to parse '{line}' to isize [{err}]").into())
             })
             .collect()
     }
@@ -33,9 +33,8 @@ impl Parser {
                 line.split(pattern)
                     .map(str::trim)
                     .map(|s| {
-                        s.parse::<isize>().map_err(|err| {
-                            format!("Failed to parse '{}' to isize [{}]", s, err).into()
-                        })
+                        s.parse::<isize>()
+                            .map_err(|err| format!("Failed to parse '{s}' to isize [{err}]").into())
                     })
                     .collect::<Result<Vec<isize>, Box<dyn Error>>>()
             })
@@ -80,7 +79,7 @@ impl Parser {
         for line in &lines {
             // Apply regex pattern, in case of no match report an error
             let captures = re.captures(line).ok_or_else(|| -> Box<dyn Error> {
-                format!("Failed to parse line '{}'", line).into()
+                format!("Failed to parse line '{line}'").into()
             })?;
 
             let groups = captures
@@ -89,7 +88,7 @@ impl Parser {
                 .enumerate()
                 .map(|(i, m)| {
                     m.map(|mat| mat.as_str().to_string())
-                        .ok_or_else(|| format!("Missing capture group at index {}", i).into())
+                        .ok_or_else(|| format!("Missing capture group at index {i}").into())
                 })
                 .collect::<Result<Vec<_>, Box<dyn Error>>>()?;
 

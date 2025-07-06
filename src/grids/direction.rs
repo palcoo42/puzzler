@@ -25,7 +25,7 @@ impl Direction {
             Direction::South => Direction::East,
             Direction::West => Direction::South,
             Direction::North => Direction::West,
-            _ => panic!("Invalid direction for left '{:?}'", self),
+            _ => panic!("Invalid direction for left '{self:?}'"),
         }
     }
 
@@ -35,7 +35,7 @@ impl Direction {
             Direction::South => Direction::West,
             Direction::West => Direction::North,
             Direction::North => Direction::East,
-            _ => panic!("Invalid direction for right '{:?}'", self),
+            _ => panic!("Invalid direction for right '{self:?}'"),
         }
     }
 
@@ -45,7 +45,7 @@ impl Direction {
             Direction::South => Direction::North,
             Direction::West => Direction::East,
             Direction::North => Direction::South,
-            _ => panic!("Invalid direction for left '{:?}'", self),
+            _ => panic!("Invalid direction for left '{self:?}'"),
         }
     }
 }

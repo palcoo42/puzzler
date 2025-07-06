@@ -17,8 +17,7 @@ impl Solver {
     pub fn new(puzzle: Box<dyn Puzzle>, parts: u32) -> Self {
         if !(1..=MAX_PUZZLE_PARTS).contains(&parts) {
             panic!(
-                "Invalid number of puzzle parts '{}'. Allowed range is range <1,{}>",
-                parts, MAX_PUZZLE_PARTS
+                "Invalid number of puzzle parts '{parts}'. Allowed range is range <1,{MAX_PUZZLE_PARTS}>"
             )
         }
 
@@ -48,16 +47,16 @@ impl Solver {
 
         // Solve puzzle parts
         for part in 1..=self.parts {
-            print!("Part {}: ", part);
+            print!("Part {part}: ");
 
             let result = match part {
                 1 => self.puzzle.solve_part1()?,
                 2 => self.puzzle.solve_part2()?,
                 3 => self.puzzle.solve_part3()?,
-                oops => panic!("Unexpected part '{}'", oops),
+                oops => panic!("Unexpected part '{oops}'"),
             };
 
-            println!("{}", result);
+            println!("{result}");
         }
 
         Ok(())
