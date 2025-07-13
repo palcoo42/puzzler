@@ -41,6 +41,38 @@ impl Parser {
             .collect()
     }
 
+    // Parse every line to single unsigned integer
+    pub fn parse_lines_to_unsigned_integer(
+        lines: Vec<String>,
+    ) -> Result<Vec<usize>, Box<dyn Error>> {
+        lines
+            .into_iter()
+            .map(|line| {
+                line.parse::<usize>()
+                    .map_err(|err| format!("Failed to parse '{line}' to usize [{err}]").into())
+            })
+            .collect()
+    }
+
+    // Parse every line to list of unsigned integers separated with pattern
+    pub fn parse_lines_to_unsigned_integers(
+        lines: Vec<String>,
+        pattern: &str,
+    ) -> Result<Vec<Vec<usize>>, Box<dyn Error>> {
+        lines
+            .into_iter()
+            .map(|line| {
+                line.split(pattern)
+                    .map(str::trim)
+                    .map(|s| {
+                        s.parse::<usize>()
+                            .map_err(|err| format!("Failed to parse '{s}' to usize [{err}]").into())
+                    })
+                    .collect::<Result<Vec<usize>, Box<dyn Error>>>()
+            })
+            .collect()
+    }
+
     // Parse every line to list of strings separated with pattern
     pub fn parse_lines_to_strings(
         lines: Vec<String>,
@@ -228,6 +260,46 @@ mod tests {
     fn test_parse_lines_to_integers_error() {
         let lines = vec![
             "-1 2 3 -4 42".to_string(),
+            "2".to_string(),
+            "3 oops".to_string(),
+        ];
+
+        let result = Parser::parse_lines_to_integers(lines, " ");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_parse_lines_to_unsigned_integer() {
+        let lines = vec!["1".to_string(), "2".to_string(), "3".to_string()];
+
+        let result = Parser::parse_lines_to_integer(lines);
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), vec![1, 2, 3]);
+    }
+
+    #[test]
+    fn test_parse_lines_to_unsigned_integer_error() {
+        let lines = vec!["1".to_string(), "2oops".to_string(), "3".to_string()];
+
+        let result = Parser::parse_lines_to_integer(lines);
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_parse_lines_to_unsigned_integers() {
+        let lines = vec!["1 2 3 4 42".to_string(), "2".to_string()];
+
+        let result = Parser::parse_lines_to_integers(lines, " ");
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), vec![vec![1, 2, 3, 4, 42], vec![2]]);
+    }
+
+    #[test]
+    fn test_parse_lines_to_unsigned_integers_error() {
+        let lines = vec![
+            "1 2 3 4 42".to_string(),
             "2".to_string(),
             "3 oops".to_string(),
         ];
