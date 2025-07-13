@@ -141,6 +141,15 @@ impl Parser {
 
         Grid::new(grid)
     }
+
+    pub fn parse_lines_to_grid_str(lines: &[&str]) -> Result<Grid, Box<dyn Error>> {
+        let grid = lines
+            .iter()
+            .map(|line| line.chars().collect::<Vec<_>>())
+            .collect::<Vec<_>>();
+
+        Grid::new(grid)
+    }
 }
 
 #[cfg(test)]
@@ -338,6 +347,25 @@ mod tests {
         ];
 
         let result = Parser::parse_lines_to_grid(lines);
+        assert!(result.is_ok());
+
+        let grid = result.unwrap();
+        assert_eq!(grid.rows(), 3);
+        assert_eq!(grid.cols(), 6);
+        assert_eq!(grid[Point { x: 0, y: 0 }], '.');
+        assert_eq!(grid[Point { x: 4, y: 0 }], 'S');
+        assert_eq!(grid[Point { x: 5, y: 0 }], '#');
+        assert_eq!(grid[Point { x: 1, y: 1 }], '.');
+        assert_eq!(grid[Point { x: 0, y: 2 }], 'E');
+        assert_eq!(grid[Point { x: 1, y: 2 }], '#');
+        assert_eq!(grid[Point { x: 5, y: 2 }], '#');
+    }
+
+    #[test]
+    fn test_parse_lines_to_grid_str() {
+        let lines = vec!["..#.S#", "......", "E#...#"];
+
+        let result = Parser::parse_lines_to_grid_str(&lines);
         assert!(result.is_ok());
 
         let grid = result.unwrap();
