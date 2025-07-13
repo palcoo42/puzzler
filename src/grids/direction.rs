@@ -19,6 +19,18 @@ impl Direction {
         Direction::West,
     ];
 
+    /// Constant to name the all directions in a grid
+    pub const ALL: [Direction; 8] = [
+        Direction::North,
+        Direction::NorthEast,
+        Direction::East,
+        Direction::SouthEast,
+        Direction::South,
+        Direction::SouthWest,
+        Direction::West,
+        Direction::NorthWest,
+    ];
+
     pub fn left(&self) -> Direction {
         match self {
             Direction::East => Direction::North,
