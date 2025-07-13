@@ -206,6 +206,34 @@ impl Grid {
             println!("{line}");
         }
     }
+
+    // Compare grid with &str per line. Used in unittests.
+    pub fn equals(&self, raw: &[&str]) -> bool {
+        // Check number of rows
+        if self.rows != raw.len() {
+            return false;
+        }
+
+        // For every row check every column
+        for (row_index, row) in raw.iter().enumerate() {
+            // Save current row into bytes
+            let bytes = row.as_bytes();
+
+            // Check number of columns
+            if self.cols != bytes.len() {
+                return false;
+            }
+
+            // Compare all columns
+            for (col_index, col) in bytes.iter().enumerate() {
+                if self.internal[row_index][col_index] != *col as char {
+                    return false;
+                }
+            }
+        }
+
+        true
+    }
 }
 
 impl Index<Point> for Grid {
@@ -396,5 +424,13 @@ mod tests {
         assert_eq!(grid[Point { x: 0, y: 1 }], '.');
         assert_eq!(grid[Point { x: 1, y: 1 }], '.');
         assert_eq!(grid[Point { x: 2, y: 1 }], '.');
+    }
+
+    #[test]
+    fn test_equals() {
+        let grid = build_grid();
+
+        assert!(grid.equals(&["abc", "def"]));
+        assert!(!grid.equals(&["abc", "defx"]));
     }
 }
