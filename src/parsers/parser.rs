@@ -6,11 +6,6 @@ use crate::grids::grid::Grid;
 pub struct Parser {}
 
 impl Parser {
-    // Split lines by given line pattern
-    pub fn split_lines_by(lines: Vec<String>, pattern: &str) -> Vec<String> {
-        lines.into_iter().filter(|line| !line.eq(pattern)).collect()
-    }
-
     // Parse every line to single integer
     pub fn parse_lines_to_integer(lines: Vec<String>) -> Result<Vec<isize>, Box<dyn Error>> {
         lines
@@ -150,6 +145,36 @@ impl Parser {
 
         Grid::new(grid)
     }
+
+    // Group lines by empty lines
+    pub fn group_lines(lines: Vec<String>) -> Vec<Vec<String>> {
+        let mut groups = Vec::new();
+        let mut group = Vec::new();
+
+        for line in lines {
+            // Pattern terminates given group
+            match line.is_empty() {
+                true => {
+                    // End of group
+                    if !group.is_empty() {
+                        groups.push(group.clone());
+                        group.clear();
+                    }
+                }
+                false => {
+                    // Still in the group
+                    group.push(line);
+                }
+            }
+        }
+
+        // Add last group if available
+        if !group.is_empty() {
+            groups.push(group);
+        }
+
+        groups
+    }
 }
 
 #[cfg(test)]
@@ -160,23 +185,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_split_lines_by_empty_line() {
-        const DELIMITER: &str = "";
-
+    fn test_group_lines_empty_line() {
         let lines = vec![
             "1".to_string(),
-            DELIMITER.to_string(),
             "2".to_string(),
-            DELIMITER.to_string(),
             "3".into(),
+            "".to_string(),
+            "Something else".to_string(),
         ];
 
-        let split = Parser::split_lines_by(lines, DELIMITER);
+        let groups = Parser::group_lines(lines);
 
+        assert_eq!(groups.len(), 2);
         assert_eq!(
-            split,
+            groups[0],
             vec!["1".to_string(), "2".to_string(), "3".to_string()]
-        )
+        );
+        assert_eq!(groups[1], vec!["Something else".to_string()])
     }
 
     #[test]
