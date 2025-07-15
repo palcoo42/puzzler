@@ -11,7 +11,8 @@ impl Parser {
         lines
             .into_iter()
             .map(|line| {
-                line.parse::<isize>()
+                line.trim()
+                    .parse::<isize>()
                     .map_err(|err| format!("Failed to parse '{line}' to isize [{err}]").into())
             })
             .collect()
@@ -28,7 +29,8 @@ impl Parser {
                 line.split(pattern)
                     .map(str::trim)
                     .map(|s| {
-                        s.parse::<isize>()
+                        s.trim()
+                            .parse::<isize>()
                             .map_err(|err| format!("Failed to parse '{s}' to isize [{err}]").into())
                     })
                     .collect::<Result<Vec<isize>, Box<dyn Error>>>()
@@ -43,7 +45,8 @@ impl Parser {
         lines
             .into_iter()
             .map(|line| {
-                line.parse::<usize>()
+                line.trim()
+                    .parse::<usize>()
                     .map_err(|err| format!("Failed to parse '{line}' to usize [{err}]").into())
             })
             .collect()
@@ -60,7 +63,8 @@ impl Parser {
                 line.split(pattern)
                     .map(str::trim)
                     .map(|s| {
-                        s.parse::<usize>()
+                        s.trim()
+                            .parse::<usize>()
                             .map_err(|err| format!("Failed to parse '{s}' to usize [{err}]").into())
                     })
                     .collect::<Result<Vec<usize>, Box<dyn Error>>>()
@@ -174,6 +178,52 @@ impl Parser {
         }
 
         groups
+    }
+
+    pub fn decode_line_to_unsigned_integer(line: &str, pat: &str) -> Result<usize, Box<dyn Error>> {
+        // Find position after the pattern
+        let pos = line.find(pat).ok_or_else(|| -> Box<dyn Error> {
+            format!("Pattern '{pat}' not found in '{line}'").into()
+        })?;
+
+        // From the end of pattern decode unsigned integer
+        let number = line[pos + pat.len()..]
+            .trim()
+            .parse::<usize>()
+            .map_err(|err| -> Box<dyn Error> {
+                format!("Failed to parse '{line}' after pattern '{pat}', substring '{}' to usize [{err}]", &line[pos + pat.len()..]).into()
+            })?;
+
+        Ok(number)
+    }
+
+    pub fn decode_line_to_signed_integer(line: &str, pat: &str) -> Result<isize, Box<dyn Error>> {
+        // Find position after the pattern
+        let pos = line.find(pat).ok_or_else(|| -> Box<dyn Error> {
+            format!("Pattern '{pat}' not found in '{line}'").into()
+        })?;
+
+        // From the end of pattern decode signed integer
+        let number = line[pos + pat.len()..]
+            .trim()
+            .parse::<isize>()
+            .map_err(|err| -> Box<dyn Error> {
+                format!("Failed to parse '{line}' after pattern '{pat}', substring '{}' to isize [{err}]", &line[pos + pat.len()..]).into()
+            })?;
+
+        Ok(number)
+    }
+
+    pub fn decode_line_to_string(line: &str, pat: &str) -> Result<String, Box<dyn Error>> {
+        // Find position after the pattern
+        let pos = line.find(pat).ok_or_else(|| -> Box<dyn Error> {
+            format!("Pattern '{pat}' not found in '{line}'").into()
+        })?;
+
+        // From the end of pattern decode String
+        let text = line[pos + pat.len()..].trim();
+
+        Ok(text.to_string())
     }
 }
 
@@ -403,5 +453,26 @@ mod tests {
         assert_eq!(grid[Point { x: 0, y: 2 }], 'E');
         assert_eq!(grid[Point { x: 1, y: 2 }], '#');
         assert_eq!(grid[Point { x: 5, y: 2 }], '#');
+    }
+
+    #[test]
+    fn test_decode_line_to_unsigned_integer() {
+        let result = Parser::decode_line_to_unsigned_integer("Age: 42", "Age:");
+        assert!(result.is_ok(), "{result:?}");
+        assert_eq!(result.unwrap(), 42);
+    }
+
+    #[test]
+    fn test_decode_line_to_signed_integer() {
+        let result = Parser::decode_line_to_signed_integer("Price: -100", "Price: ");
+        assert!(result.is_ok(), "{result:?}");
+        assert_eq!(result.unwrap(), -100);
+    }
+
+    #[test]
+    fn test_decode_line_to_string() {
+        let result = Parser::decode_line_to_string("Name: N/A", "Name:");
+        assert!(result.is_ok(), "{result:?}");
+        assert_eq!(result.unwrap(), String::from("N/A"));
     }
 }
