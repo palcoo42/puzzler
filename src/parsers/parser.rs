@@ -8,70 +8,94 @@ pub struct Parser {}
 impl Parser {
     // Parse every line to single integer
     pub fn parse_lines_to_integer(lines: Vec<String>) -> Result<Vec<isize>, Box<dyn Error>> {
-        lines
-            .into_iter()
-            .map(|line| {
-                line.trim()
-                    .parse::<isize>()
-                    .map_err(|err| format!("Failed to parse '{line}' to isize [{err}]").into())
+        let integers = Self::parse_lines_to_integers(lines)?;
+
+        // Take only first integer from every line
+        integers
+            .iter()
+            .map(|line| -> Result<isize, Box<dyn Error>> {
+                if line.len() != 1 {
+                    return Err(format!("Exactly one integer expected '{line:?}'").into());
+                }
+
+                Ok(line[0])
             })
-            .collect()
+            .collect::<Result<Vec<_>, _>>()
     }
 
-    // Parse every line to list of integers separated with pattern
-    pub fn parse_lines_to_integers(
-        lines: Vec<String>,
-        pattern: &str,
-    ) -> Result<Vec<Vec<isize>>, Box<dyn Error>> {
-        lines
-            .into_iter()
-            .map(|line| {
-                line.trim()
-                    .split(pattern)
-                    .map(str::trim)
-                    .map(|s| {
-                        s.trim()
-                            .parse::<isize>()
-                            .map_err(|err| format!("Failed to parse '{s}' to isize [{err}]").into())
+    // Parse every line to list of integers
+    pub fn parse_lines_to_integers(lines: Vec<String>) -> Result<Vec<Vec<isize>>, Box<dyn Error>> {
+        let regex = Regex::new(r"[+-]?\d+")?;
+        let mut numbers = Vec::new();
+
+        for line in lines {
+            // If line contains non-number report error
+            if line.chars().any(|c| c.is_alphabetic()) {
+                return Err(format!("Line '{line}' contains non-number character(s)").into());
+            }
+
+            // Parse numbers, there can be any number of them
+            let line_numbers = regex
+                .find_iter(line.as_str())
+                .map(|s| -> Result<_, Box<dyn Error>> {
+                    s.as_str().parse::<isize>().map_err(|err| {
+                        format!("Failed to parse '{}' to isize [{err}]", s.as_str()).into()
                     })
-                    .collect::<Result<Vec<isize>, Box<dyn Error>>>()
-            })
-            .collect()
+                })
+                .collect::<Result<Vec<_>, Box<dyn Error>>>()?;
+
+            numbers.push(line_numbers);
+        }
+
+        Ok(numbers)
     }
 
     // Parse every line to single unsigned integer
     pub fn parse_lines_to_unsigned_integer(
         lines: Vec<String>,
     ) -> Result<Vec<usize>, Box<dyn Error>> {
-        lines
-            .into_iter()
-            .map(|line| {
-                line.trim()
-                    .parse::<usize>()
-                    .map_err(|err| format!("Failed to parse '{line}' to usize [{err}]").into())
+        let integers = Self::parse_lines_to_unsigned_integers(lines)?;
+
+        // Take only first integer from every line
+        integers
+            .iter()
+            .map(|line| -> Result<usize, Box<dyn Error>> {
+                if line.len() != 1 {
+                    return Err(format!("Exactly one integer expected '{line:?}'").into());
+                }
+
+                Ok(line[0])
             })
-            .collect()
+            .collect::<Result<Vec<_>, _>>()
     }
 
-    // Parse every line to list of unsigned integers separated with pattern
+    // Parse every line to list of unsigned integers
     pub fn parse_lines_to_unsigned_integers(
         lines: Vec<String>,
-        pattern: &str,
     ) -> Result<Vec<Vec<usize>>, Box<dyn Error>> {
-        lines
-            .into_iter()
-            .map(|line| {
-                line.trim()
-                    .split(pattern)
-                    .map(str::trim)
-                    .map(|s| {
-                        s.trim()
-                            .parse::<usize>()
-                            .map_err(|err| format!("Failed to parse '{s}' to usize [{err}]").into())
+        let regex = Regex::new(r"\d+")?;
+        let mut numbers = Vec::new();
+
+        for line in lines {
+            // If line contains non-number report error
+            if line.chars().any(|c| c.is_alphabetic()) {
+                return Err(format!("Line '{line}' contains non-number character(s)").into());
+            }
+
+            // Parse numbers, there can be any number of them
+            let line_numbers = regex
+                .find_iter(line.as_str())
+                .map(|s| -> Result<_, Box<dyn Error>> {
+                    s.as_str().parse::<usize>().map_err(|err| {
+                        format!("Failed to parse '{}' to usize [{err}]", s.as_str()).into()
                     })
-                    .collect::<Result<Vec<usize>, Box<dyn Error>>>()
-            })
-            .collect()
+                })
+                .collect::<Result<Vec<_>, Box<dyn Error>>>()?;
+
+            numbers.push(line_numbers);
+        }
+
+        Ok(numbers)
     }
 
     // Parse every line to list of strings separated with pattern
@@ -343,7 +367,7 @@ mod tests {
     fn test_parse_lines_to_integers() {
         let lines = vec![" -1 2 3 -4 42 ".to_string(), " 2".to_string()];
 
-        let result = Parser::parse_lines_to_integers(lines, " ");
+        let result = Parser::parse_lines_to_integers(lines);
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), vec![vec![-1, 2, 3, -4, 42], vec![2]]);
     }
@@ -356,7 +380,7 @@ mod tests {
             "3 oops".to_string(),
         ];
 
-        let result = Parser::parse_lines_to_integers(lines, " ");
+        let result = Parser::parse_lines_to_integers(lines);
         assert!(result.is_err());
     }
 
@@ -386,11 +410,20 @@ mod tests {
 
     #[test]
     fn test_parse_lines_to_unsigned_integers() {
-        let lines = vec![" 1 2 3 4 42 ".to_string(), " 2 ".to_string()];
+        let lines = vec![
+            "1".to_string(),
+            " 2".to_string(),
+            "3 ".to_string(),
+            " 4 ".to_string(),
+            "   5  6      7    8  ".to_string(),
+        ];
 
-        let result = Parser::parse_lines_to_integers(lines, " ");
+        let result = Parser::parse_lines_to_unsigned_integers(lines);
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), vec![vec![1, 2, 3, 4, 42], vec![2]]);
+        assert_eq!(
+            result.unwrap(),
+            vec![vec![1], vec![2], vec![3], vec![4], vec![5, 6, 7, 8]]
+        );
     }
 
     #[test]
@@ -401,7 +434,7 @@ mod tests {
             "3 oops".to_string(),
         ];
 
-        let result = Parser::parse_lines_to_integers(lines, " ");
+        let result = Parser::parse_lines_to_unsigned_integers(lines);
         assert!(result.is_err());
     }
 
