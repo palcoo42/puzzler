@@ -10,7 +10,7 @@
 				"$rustc"
 			],
 			"group": "build",
-			"label": "$(play) demo",
+			"label": "$(play) Demo",
 			"options": {"statusbar": {"color": "#7dcb8b"}},
 			"presentation": {
 				"clear": true
@@ -22,8 +22,8 @@
 			"problemMatcher": [
 				"$rustc"
 			],
-			"group": "build",
-			"label": "$(play) test",
+			"group": "test",
+			"label": "$(play) Test",
 			"options": {"statusbar": {"color": "#b476c4"}},
 			"presentation": {
 				"clear": true

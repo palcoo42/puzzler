@@ -234,6 +234,152 @@ impl Grid {
 
         true
     }
+
+    pub fn row_as_string(&self, row: usize) -> Option<String> {
+        if row >= self.rows {
+            return None;
+        }
+
+        Some(self.internal[row].iter().collect::<String>())
+    }
+
+    pub fn col_as_string(&self, col: usize) -> Option<String> {
+        if col >= self.cols {
+            return None;
+        }
+
+        let mut column = String::with_capacity(self.rows);
+        for row in 0..self.rows {
+            column.push(self.internal[row][col]);
+        }
+        Some(column)
+    }
+
+    pub fn row_shift_left(&mut self, row: usize, shuffle: usize, default: char) {
+        if shuffle == 0 {
+            return;
+        }
+
+        for i in 0..self.cols {
+            if i < self.cols.saturating_sub(shuffle) {
+                self.internal[row].swap(i, i + shuffle);
+            } else {
+                self.internal[row][i] = default;
+            }
+        }
+    }
+
+    pub fn row_shift_right(&mut self, row: usize, shuffle: usize, default: char) {
+        if shuffle == 0 {
+            return;
+        }
+
+        for i in (0..self.cols).rev() {
+            if i + shuffle < self.cols {
+                self.internal[row].swap(i, i + shuffle);
+            } else {
+                self.internal[row][i] = default;
+            }
+        }
+    }
+
+    pub fn col_shift_down(&mut self, col: usize, shuffle: usize, default: char) {
+        if shuffle == 0 {
+            return;
+        }
+
+        for i in (0..self.rows).rev() {
+            if i < self.rows.saturating_sub(shuffle) {
+                let tmp = self.internal[i][col];
+                self.internal[i][col] = self.internal[i + shuffle][col];
+                self.internal[i + shuffle][col] = tmp;
+            } else {
+                self.internal[i][col] = default;
+            }
+        }
+    }
+
+    pub fn col_shift_up(&mut self, col: usize, shuffle: usize, default: char) {
+        if shuffle == 0 {
+            return;
+        }
+
+        for i in 0..self.rows {
+            if i < self.rows.saturating_sub(shuffle) {
+                let tmp = self.internal[i][col];
+                self.internal[i][col] = self.internal[i + shuffle][col];
+                self.internal[i + shuffle][col] = tmp;
+            } else {
+                self.internal[i][col] = default;
+            }
+        }
+    }
+
+    pub fn row_rotate_left(&mut self, row: usize, shuffle: usize) {
+        if shuffle % self.cols == 0 {
+            return;
+        }
+
+        let mut rotated = vec![' '; self.cols];
+
+        for col in 0..self.cols {
+            let orig_index = (col + shuffle) % self.cols;
+            rotated[col] = self.internal[row][orig_index];
+        }
+
+        // Overwrite original
+        self.internal[row][..].copy_from_slice(&rotated[..]);
+    }
+
+    pub fn row_rotate_right(&mut self, row: usize, shuffle: usize) {
+        if shuffle % self.cols == 0 {
+            return;
+        }
+
+        let mut rotated = vec![' '; self.cols];
+
+        for col in 0..self.cols {
+            let orig_index = (col + shuffle) % self.cols;
+            rotated[orig_index] = self.internal[row][col];
+        }
+
+        // Overwrite original
+        self.internal[row][..].copy_from_slice(&rotated[..]);
+    }
+
+    pub fn col_rotate_down(&mut self, col: usize, shuffle: usize) {
+        if shuffle % self.rows == 0 {
+            return;
+        }
+
+        let mut rotated = vec![' '; self.rows];
+
+        for row in 0..self.rows {
+            let new_index = (row + shuffle) % self.rows;
+            rotated[new_index] = self.internal[row][col];
+        }
+
+        for row in 0..self.rows {
+            self.internal[row][col] = rotated[row];
+        }
+    }
+
+    pub fn col_rotate_up(&mut self, col: usize, shuffle: usize) {
+        if shuffle % self.rows == 0 {
+            return;
+        }
+
+        let mut rotated = vec![' '; self.rows];
+
+        for row in 0..self.rows {
+            let orig_index = (row + shuffle) % self.rows;
+            rotated[row] = self.internal[orig_index][col];
+        }
+
+        for row in 0..self.rows {
+            self.internal[row][col] = rotated[row];
+        }
+    }
 }
 
 impl Index<Point> for Grid {
@@ -432,5 +578,376 @@ mod tests {
 
         assert!(grid.equals(&["abc", "def"]));
         assert!(!grid.equals(&["abc", "defx"]));
+    }
+
+    #[test]
+    fn test_row_as_string() {
+        let lines = vec!["0123456789".to_string(), "abcdefghij".to_string()];
+        let grid = Parser::parse_lines_to_grid(lines).unwrap();
+
+        assert_eq!(grid.row_as_string(0), Some("0123456789".to_string()));
+        assert_eq!(grid.row_as_string(1), Some("abcdefghij".to_string()));
+        assert_eq!(grid.row_as_string(2), None);
+    }
+
+    #[test]
+    fn test_col_as_string() {
+        let lines = vec!["0123456789".to_string(), "abcdefghij".to_string()];
+        let grid = Parser::parse_lines_to_grid(lines).unwrap();
+
+        assert_eq!(grid.col_as_string(0), Some("0a".to_string()));
+        assert_eq!(grid.col_as_string(1), Some("1b".to_string()));
+        assert_eq!(grid.col_as_string(9), Some("9j".to_string()));
+        assert_eq!(grid.col_as_string(10), None);
+    }
+
+    #[test]
+    fn test_row_shift_left() {
+        let lines = vec!["0123456789".to_string()];
+        let mut grid = Parser::parse_lines_to_grid(lines).unwrap();
+
+        grid.row_shift_left(0, 0, '_');
+        assert_eq!(grid.row_as_string(0), Some("0123456789".to_string()));
+
+        grid.row_shift_left(0, 1, '_');
+        assert_eq!(grid.row_as_string(0), Some("123456789_".to_string()));
+
+        grid.row_shift_left(0, 2, '_');
+        assert_eq!(grid.row_as_string(0), Some("3456789___".to_string()));
+
+        grid.row_shift_left(0, 4, '_');
+        assert_eq!(grid.row_as_string(0), Some("789_______".to_string()));
+    }
+
+    #[test]
+    fn test_row_shift_left_limits() {
+        let lines = vec![
+            "0123456789".to_string(),
+            "0123456789".to_string(),
+            "0123456789".to_string(),
+            "0123456789".to_string(),
+        ];
+        let mut grid = Parser::parse_lines_to_grid(lines).unwrap();
+
+        // grid.row_shift_left(0, 9, '_');
+        // assert_eq!(grid.row_as_string(0), Some("9_________".to_string()));
+
+        grid.row_shift_left(1, 10, '_');
+        assert_eq!(grid.row_as_string(1), Some("__________".to_string()));
+
+        // grid.row_shift_left(2, 11, '_');
+        // assert_eq!(grid.row_as_string(2), Some("__________".to_string()));
+
+        // grid.row_shift_left(3, 42, '_');
+        // assert_eq!(grid.row_as_string(3), Some("__________".to_string()));
+    }
+
+    #[test]
+    fn test_row_shift_right() {
+        let lines = vec!["0123456789".to_string()];
+        let mut grid = Parser::parse_lines_to_grid(lines).unwrap();
+
+        grid.row_shift_right(0, 0, '_');
+        assert_eq!(grid.row_as_string(0), Some("0123456789".to_string()));
+
+        grid.row_shift_right(0, 1, '_');
+        assert_eq!(grid.row_as_string(0), Some("_012345678".to_string()));
+
+        grid.row_shift_right(0, 2, '_');
+        assert_eq!(grid.row_as_string(0), Some("___0123456".to_string()));
+
+        grid.row_shift_right(0, 4, '_');
+        assert_eq!(grid.row_as_string(0), Some("_______012".to_string()));
+    }
+
+    #[test]
+    fn test_row_shift_right_limits() {
+        let lines = vec![
+            "0123456789".to_string(),
+            "0123456789".to_string(),
+            "0123456789".to_string(),
+            "0123456789".to_string(),
+        ];
+        let mut grid = Parser::parse_lines_to_grid(lines).unwrap();
+
+        grid.row_shift_right(0, 9, '_');
+        assert_eq!(grid.row_as_string(0), Some("_________0".to_string()));
+
+        grid.row_shift_right(1, 10, '_');
+        assert_eq!(grid.row_as_string(1), Some("__________".to_string()));
+
+        grid.row_shift_right(2, 11, '_');
+        assert_eq!(grid.row_as_string(2), Some("__________".to_string()));
+
+        grid.row_shift_right(3, 42, '_');
+        assert_eq!(grid.row_as_string(3), Some("__________".to_string()));
+    }
+
+    #[test]
+    fn test_col_shift_down() {
+        let lines = vec![
+            "0".to_string(),
+            "1".to_string(),
+            "2".to_string(),
+            "3".to_string(),
+            "4".to_string(),
+            "5".to_string(),
+            "6".to_string(),
+            "7".to_string(),
+            "8".to_string(),
+            "9".to_string(),
+        ];
+        let mut grid = Parser::parse_lines_to_grid(lines).unwrap();
+
+        grid.col_shift_down(0, 0, '_');
+        assert_eq!(grid.col_as_string(0), Some("0123456789".to_string()));
+
+        grid.col_shift_down(0, 1, '_');
+        assert_eq!(grid.col_as_string(0), Some("_012345678".to_string()));
+
+        grid.col_shift_down(0, 2, '_');
+        assert_eq!(grid.col_as_string(0), Some("___0123456".to_string()));
+
+        grid.col_shift_down(0, 4, '_');
+        assert_eq!(grid.col_as_string(0), Some("_______012".to_string()));
+    }
+
+    #[test]
+    fn test_col_shift_down_limits() {
+        let lines = vec![
+            "0000".to_string(),
+            "1111".to_string(),
+            "2222".to_string(),
+            "3333".to_string(),
+            "4444".to_string(),
+            "5555".to_string(),
+            "6666".to_string(),
+            "7777".to_string(),
+            "8888".to_string(),
+            "9999".to_string(),
+        ];
+        let mut grid = Parser::parse_lines_to_grid(lines).unwrap();
+
+        grid.col_shift_down(0, 9, '_');
+        assert_eq!(grid.col_as_string(0), Some("_________0".to_string()));
+
+        grid.col_shift_down(1, 10, '_');
+        assert_eq!(grid.col_as_string(1), Some("__________".to_string()));
+
+        grid.col_shift_down(2, 11, '_');
+        assert_eq!(grid.col_as_string(2), Some("__________".to_string()));
+
+        grid.col_shift_down(3, 42, '_');
+        assert_eq!(grid.col_as_string(3), Some("__________".to_string()));
+    }
+
+    #[test]
+    fn test_col_shift_up() {
+        let lines = vec![
+            "0".to_string(),
+            "1".to_string(),
+            "2".to_string(),
+            "3".to_string(),
+            "4".to_string(),
+            "5".to_string(),
+            "6".to_string(),
+            "7".to_string(),
+            "8".to_string(),
+            "9".to_string(),
+        ];
+        let mut grid = Parser::parse_lines_to_grid(lines).unwrap();
+
+        grid.col_shift_up(0, 0, '_');
+        assert_eq!(grid.col_as_string(0), Some("0123456789".to_string()));
+
+        grid.col_shift_up(0, 1, '_');
+        assert_eq!(grid.col_as_string(0), Some("123456789_".to_string()));
+
+        grid.col_shift_up(0, 2, '_');
+        assert_eq!(grid.col_as_string(0), Some("3456789___".to_string()));
+
+        grid.col_shift_up(0, 4, '_');
+        assert_eq!(grid.col_as_string(0), Some("789_______".to_string()));
+    }
+
+    #[test]
+    fn test_col_shift_up_limits() {
+        let lines = vec![
+            "0000".to_string(),
+            "1111".to_string(),
+            "2222".to_string(),
+            "3333".to_string(),
+            "4444".to_string(),
+            "5555".to_string(),
+            "6666".to_string(),
+            "7777".to_string(),
+            "8888".to_string(),
+            "9999".to_string(),
+        ];
+        let mut grid = Parser::parse_lines_to_grid(lines).unwrap();
+
+        grid.col_shift_up(0, 9, '_');
+        assert_eq!(grid.col_as_string(0), Some("9_________".to_string()));
+
+        grid.col_shift_up(1, 10, '_');
+        assert_eq!(grid.col_as_string(1), Some("__________".to_string()));
+
+        grid.col_shift_up(2, 11, '_');
+        assert_eq!(grid.col_as_string(2), Some("__________".to_string()));
+
+        grid.col_shift_up(3, 42, '_');
+        assert_eq!(grid.col_as_string(3), Some("__________".to_string()));
+    }
+
+    #[test]
+    fn test_row_rotate_left() {
+        let lines = vec!["0123456789".to_string()];
+        let mut grid = Parser::parse_lines_to_grid(lines).unwrap();
+
+        grid.row_rotate_left(0, 0);
+        assert_eq!(grid.row_as_string(0), Some("0123456789".to_string()));
+
+        grid.row_rotate_left(0, 1);
+        assert_eq!(grid.row_as_string(0), Some("1234567890".to_string()));
+
+        grid.row_rotate_left(0, 2);
+        assert_eq!(grid.row_as_string(0), Some("3456789012".to_string()));
+
+        grid.row_rotate_left(0, 4);
+        assert_eq!(grid.row_as_string(0), Some("7890123456".to_string()));
+    }
+
+    #[test]
+    fn test_row_rotate_left_over_length() {
+        let lines = vec!["0123456789".to_string()];
+        let mut grid = Parser::parse_lines_to_grid(lines).unwrap();
+
+        grid.row_rotate_left(0, 42);
+        assert_eq!(grid.row_as_string(0), Some("2345678901".to_string()));
+    }
+
+    #[test]
+    fn test_row_rotate_right() {
+        let lines = vec!["0123456789".to_string()];
+        let mut grid = Parser::parse_lines_to_grid(lines).unwrap();
+
+        grid.row_rotate_right(0, 0);
+        assert_eq!(grid.row_as_string(0), Some("0123456789".to_string()));
+
+        grid.row_rotate_right(0, 1);
+        assert_eq!(grid.row_as_string(0), Some("9012345678".to_string()));
+
+        grid.row_rotate_right(0, 2);
+        assert_eq!(grid.row_as_string(0), Some("7890123456".to_string()));
+
+        grid.row_rotate_right(0, 4);
+        assert_eq!(grid.row_as_string(0), Some("3456789012".to_string()));
+    }
+
+    #[test]
+    fn test_row_rotate_right_over_length() {
+        let lines = vec!["0123456789".to_string()];
+        let mut grid = Parser::parse_lines_to_grid(lines).unwrap();
+
+        grid.row_rotate_right(0, 42);
+        assert_eq!(grid.row_as_string(0), Some("8901234567".to_string()));
+    }
+
+    #[test]
+    fn test_col_rotate_down() {
+        let lines = vec![
+            "0".to_string(),
+            "1".to_string(),
+            "2".to_string(),
+            "3".to_string(),
+            "4".to_string(),
+            "5".to_string(),
+            "6".to_string(),
+            "7".to_string(),
+            "8".to_string(),
+            "9".to_string(),
+        ];
+        let mut grid = Parser::parse_lines_to_grid(lines).unwrap();
+
+        grid.col_rotate_down(0, 0);
+        assert_eq!(grid.col_as_string(0), Some("0123456789".to_string()));
+
+        grid.col_rotate_down(0, 1);
+        assert_eq!(grid.col_as_string(0), Some("9012345678".to_string()));
+
+        grid.col_rotate_down(0, 2);
+        assert_eq!(grid.col_as_string(0), Some("7890123456".to_string()));
+
+        grid.col_rotate_down(0, 4);
+        assert_eq!(grid.col_as_string(0), Some("3456789012".to_string()));
+    }
+
+    #[test]
+    fn test_col_rotate_down_over_length() {
+        let lines = vec![
+            "0".to_string(),
+            "1".to_string(),
+            "2".to_string(),
+            "3".to_string(),
+            "4".to_string(),
+            "5".to_string(),
+            "6".to_string(),
+            "7".to_string(),
+            "8".to_string(),
+            "9".to_string(),
+        ];
+        let mut grid = Parser::parse_lines_to_grid(lines).unwrap();
+
+        grid.col_rotate_down(0, 42);
+        assert_eq!(grid.col_as_string(0), Some("8901234567".to_string()));
+    }
+
+    #[test]
+    fn test_col_rotate_up() {
+        let lines = vec![
+            "0".to_string(),
+            "1".to_string(),
+            "2".to_string(),
+            "3".to_string(),
+            "4".to_string(),
+            "5".to_string(),
+            "6".to_string(),
+            "7".to_string(),
+            "8".to_string(),
+            "9".to_string(),
+        ];
+        let mut grid = Parser::parse_lines_to_grid(lines).unwrap();
+
+        grid.col_rotate_up(0, 0);
+        assert_eq!(grid.col_as_string(0), Some("0123456789".to_string()));
+
+        grid.col_rotate_up(0, 1);
+        assert_eq!(grid.col_as_string(0), Some("1234567890".to_string()));
+
+        grid.col_rotate_up(0, 2);
+        assert_eq!(grid.col_as_string(0), Some("3456789012".to_string()));
+
+        grid.col_rotate_up(0, 4);
+        assert_eq!(grid.col_as_string(0), Some("7890123456".to_string()));
+    }
+
+    #[test]
+    fn test_col_rotate_up_over_length() {
+        let lines = vec![
+            "0".to_string(),
+            "1".to_string(),
+            "2".to_string(),
+            "3".to_string(),
+            "4".to_string(),
+            "5".to_string(),
+            "6".to_string(),
+            "7".to_string(),
+            "8".to_string(),
+            "9".to_string(),
+        ];
+        let mut grid = Parser::parse_lines_to_grid(lines).unwrap();
+
+        grid.col_rotate_up(0, 42);
+        assert_eq!(grid.col_as_string(0), Some("2345678901".to_string()));
     }
 }
